@@ -1,0 +1,80 @@
+# ====================================================================
+# anyPS4 - Modular PS4-to-PC Translation Wrapper Template .gitignore
+# ====================================================================
+
+# 1. Build Outputs & Compilations
+out/
+build/
+bin/
+obj/
+*.o
+*.obj
+*.a
+*.lib
+*.pdb
+*.ilk
+*.exp
+
+# 2. Executables & Bundled Runtime Libraries
+*.exe
+*.dll
+!tools/deps/*.dll
+
+# 3. Portable Distribution Output Packages
+JStars_PC_Portable/
+*_Portable/
+*.zip
+*.7z
+*.tar.gz
+*.rar
+
+# 4. Raw Game Files, Firmware Modules & Copyrighted Assets
+workspace/*
+!workspace/.gitkeep
+!workspace/README.md
+game_dump/
+extracted_game/
+*.pkg
+*.prx
+*.elf
+*.bin
+*.cpk
+*.self
+*.sfo
+*.trp
+*.plt
+
+# 5. Runtime User Data, Save Data & Logs
+*.log
+*.err
+savedata/
+user/
+launcher_config.ini
+
+# 6. Local Configurations (Keep template configs in targets/)
+*.ini
+!targets/**/*.ini
+!targets/**/target.ini
+
+# 7. IDE & Editor Specific Files
+.vs/
+.vscode/
+.idea/
+CMakeSettings.json
+*.user
+*.suo
+*.sln.docstates
+
+# 8. Python Cache & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.env
+venv/
+env/
+
+# 9. Scratch & Temporary Analysis Dumps
+temp_ctr/
+scratch/
+dlss_bridge/
