@@ -15,11 +15,19 @@
 extern "C" {
 #endif
 
+#ifdef ANYPS_PLATFORM_PS4
+#undef ANYPS_PLATFORM_PS4
+#endif
+#ifdef ANYPS_PLATFORM_PS5
+#undef ANYPS_PLATFORM_PS5
+#endif
+
 typedef enum anyps_platform_id {
     ANYPS_PLATFORM_UNKNOWN = 0,
     ANYPS_PLATFORM_PS4     = 1, /* Orbis OS / FreeBSD 9.0 kernel deriv / AMD Jaguar */
     ANYPS_PLATFORM_PS5     = 2  /* Prospero OS / FreeBSD 12+ kernel deriv / AMD Zen2 */
 } anyps_platform_id_t;
+
 
 typedef struct anyps_os_config {
     anyps_platform_id_t platform;

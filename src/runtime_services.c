@@ -74,10 +74,11 @@ static ABI int32_t user_list(int32_t *ids) {
     return 0;
 }
 static ABI int32_t user_name(int32_t id,char *name,uint64_t size) {
-    if (id<1 || id>4 || !name) return USER_INVALID_ARGUMENT;
+    int user = (id >= (int32_t)0x10000000 && id <= (int32_t)(0x10000000 + 3)) ? (id - (int32_t)0x10000000 + 1) : id;
+    if (user < 1 || user > 4 || !name) return USER_INVALID_ARGUMENT;
     char player[16];
     const char *value=getenv("BB_USER_NAME") ? getenv("BB_USER_NAME") : default_user_name();
-    if (id!=USER_ID) { snprintf(player,sizeof player,"Player %d",id); value=player; }
+    if (user != 1) { snprintf(player,sizeof player,"Player %d",user); value=player; }
     if (strlen(value)+1>size) return (int32_t)0x8096000a; /* BUFFER_TOO_SHORT */
     strcpy(name,value); return 0;
 }

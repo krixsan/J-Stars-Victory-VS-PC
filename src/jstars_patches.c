@@ -55,18 +55,8 @@ void jstars_patches_init(uintptr_t image_base, size_t image_size) {
 
     uint8_t *base = (uint8_t *)image_base;
 
-    // Check if user disabled binary patches or requested 30 FPS mode
-    const char *no_patch = getenv("JSTARS_NO_PATCH");
-    const char *fps30 = getenv("JSTARS_30FPS");
-    const char *keep_flip = getenv("BB_KEEP_FLIPRATE");
-    if ((no_patch && *no_patch == '1') || (fps30 && *fps30 == '1') || (keep_flip && *keep_flip == '1')) {
-        printf("[J-STARS] 60 FPS binary patches skipped (30 FPS mode requested).\n");
-        return;
-    }
-
     // --- Patch 1: Flip Rate Selection (VirtAddr 0x43d8e6) ---
-    // 0x43d8ec: be 02 00 00 00 (movl $2, %esi) -> 31 f6 90 90 90 (xorl %esi, %esi; nops)
-    // 0x43d8fb: be 01 00 00 00 (movl $1, %esi) -> 31 f6 90 90 90 (xorl %esi, %esi; nops)
+    // Must always run to ensure sceVideoOutSetFlipRate receives 0, preventing presenter stall / black screen.
     if (image_size > 0x43da00) {
         uint8_t *p_rate2 = base + 0x43d8ec;
         uint8_t *p_rate1 = base + 0x43d8fb;
@@ -77,10 +67,19 @@ void jstars_patches_init(uintptr_t image_base, size_t image_size) {
         if (memcmp(p_rate2, expected2, 5) == 0 && memcmp(p_rate1, expected1, 5) == 0) {
             patch_memory(p_rate2, xor_esi, 5);
             patch_memory(p_rate1, xor_esi, 5);
-            printf("[J-STARS] [PATCH SUCCESS] eboot.bin 0x43d8e6 flip rate logic patched to force 60 FPS (rate=0)!\n");
+            printf("[J-STARS] [PATCH SUCCESS] eboot.bin 0x43d8e6 flip rate logic patched to force rate=0!\n");
         } else {
             printf("[J-STARS] [PATCH NOTICE] eboot.bin 0x43d8e6 flip rate logic already patched or signature mismatch.\n");
         }
+    }
+
+    // Check if user disabled 60 FPS binary patches or requested 30 FPS console mode
+    const char *no_patch = getenv("JSTARS_NO_PATCH");
+    const char *fps30 = getenv("JSTARS_30FPS");
+    if ((no_patch && *no_patch == '1') || (fps30 && *fps30 == '1')) {
+        printf("[J-STARS] 60 FPS binary patches skipped (30 FPS normal console mode).\n");
+        fflush(stdout);
+        return;
     }
 
     // --- Patch 2: Physics Step Delta Time (Havok Physics Engine) ---
@@ -164,7 +163,86 @@ void jstars_patches_init(uintptr_t image_base, size_t image_size) {
             printf("[J-STARS] [PATCH NOTICE] eboot.bin 0x585bc8 already patched or signature mismatch.\n");
         }
     }
+
+    // --- Patch 5: Timer Manager Global Speed Multiplier (VirtAddr 0x41f6c9) ---
+    // 0x41f6c9: c7 43 0c 00 00 80 3f (movl $0x3f800000, 0xc(%rbx)) ; 1.0f speed scale
+    // At 60 FPS, scale to 0.5f (0x3f000000) so timer advance is 1.0x normal speed.
+    if (image_size > 0x41f700) {
+        uint8_t *p_speed = base + 0x41f6c9;
+        static const uint8_t exp_speed[7] = {0xc7, 0x43, 0x0c, 0x00, 0x00, 0x80, 0x3f};
+        static const uint8_t pat_speed[7] = {0xc7, 0x43, 0x0c, 0x00, 0x00, 0x00, 0x3f}; // 0.5f
+
+        if (memcmp(p_speed, exp_speed, 7) == 0) {
+            patch_memory(p_speed, pat_speed, 7);
+            printf("[J-STARS] [PATCH SUCCESS] eboot.bin 0x41f6c9 Timer Manager speed multiplier scaled 0.5x!\n");
+        } else {
+            printf("[J-STARS] [PATCH NOTICE] eboot.bin 0x41f6c9 already patched or signature mismatch.\n");
+        }
+    }
+
+    // --- Patch 6: Character Animation Track Speed Multiplier (VirtAddr 0x228286 & 0x22844c) ---
+    // 0x228286: movl $0x3f800000, 0xa4/0xa8/0xac(%rdi) ; 1.0f animation speed
+    // 0x22844c: movl $0x3f800000, 0xa4/0xa8/0xac(%rbx) ; 1.0f animation speed
+    if (image_size > 0x228500) {
+        uint8_t *p_anim1 = base + 0x228286;
+        static const uint8_t exp_anim1[30] = {
+            0xc7, 0x87, 0xa4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
+            0xc7, 0x87, 0xa8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
+            0xc7, 0x87, 0xac, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f
+        };
+        static const uint8_t pat_anim1[30] = {
+            0xc7, 0x87, 0xa4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, // 0.5f
+            0xc7, 0x87, 0xa8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, // 0.5f
+            0xc7, 0x87, 0xac, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f  // 0.5f
+        };
+
+        if (memcmp(p_anim1, exp_anim1, 30) == 0) {
+            patch_memory(p_anim1, pat_anim1, 30);
+            printf("[J-STARS] [PATCH SUCCESS] eboot.bin 0x228286 character animation track speed scaled 0.5x!\n");
+        } else {
+            printf("[J-STARS] [PATCH NOTICE] eboot.bin 0x228286 already patched or signature mismatch.\n");
+        }
+
+        uint8_t *p_anim2 = base + 0x22844c;
+        static const uint8_t exp_anim2[30] = {
+            0xc7, 0x83, 0xa4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
+            0xc7, 0x83, 0xa8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f,
+            0xc7, 0x83, 0xac, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f
+        };
+        static const uint8_t pat_anim2[30] = {
+            0xc7, 0x83, 0xa4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, // 0.5f
+            0xc7, 0x83, 0xa8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f, // 0.5f
+            0xc7, 0x83, 0xac, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f  // 0.5f
+        };
+
+        if (memcmp(p_anim2, exp_anim2, 30) == 0) {
+            patch_memory(p_anim2, pat_anim2, 30);
+            printf("[J-STARS] [PATCH SUCCESS] eboot.bin 0x22844c secondary animation track speed scaled 0.5x!\n");
+        } else {
+            printf("[J-STARS] [PATCH NOTICE] eboot.bin 0x22844c already patched or signature mismatch.\n");
+        }
+    }
+
+    // --- Patch 7: Default Animation Evaluation Speed Constant (VirtAddr 0x578ec0) ---
+    // 0x578ec0 is loaded at VirtAddr 0x2488de (vmovss 0x3305da(%rip), %xmm0) to scale animation evaluation.
+    // 00 00 80 3f (1.0f) -> 00 00 00 3f (0.5f)
+    if (image_size > 0x578f00) {
+        uint8_t *p_speed_const = base + 0x578ec0;
+        static const uint8_t exp_speed_const[4] = {0x00, 0x00, 0x80, 0x3f};
+        static const uint8_t pat_speed_const[4] = {0x00, 0x00, 0x00, 0x3f}; // 0.5f
+
+        if (memcmp(p_speed_const, exp_speed_const, 4) == 0) {
+            patch_memory(p_speed_const, pat_speed_const, 4);
+            printf("[J-STARS] [PATCH SUCCESS] eboot.bin 0x578ec0 animation evaluation constant scaled to 0.5f!\n");
+        } else {
+            printf("[J-STARS] [PATCH NOTICE] eboot.bin 0x578ec0 already patched or signature mismatch.\n");
+        }
+    }
+
+    fflush(stdout);
 }
+
+
 
 void jstars_apply_framerate_patch(uintptr_t image_base, int target_fps) {
     (void)image_base;
@@ -176,3 +254,4 @@ void jstars_apply_resolution_patch(uintptr_t image_base, int width, int height) 
     (void)width;
     (void)height;
 }
+

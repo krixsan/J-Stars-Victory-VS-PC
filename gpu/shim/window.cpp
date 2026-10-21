@@ -60,10 +60,12 @@ SDL_DisplayID ChooseDisplay() {
 } // namespace
 
 WindowSDL::WindowSDL(s32 width_, s32 height_, const char* title) : width{width_}, height{height_} {
-    // Gamepads are sampled by runtime_pad.c; their events are pumped here with the window's.
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
         UNREACHABLE_MSG("Failed to initialize SDL video: {}", SDL_GetError());
     }
+    // Prevent event queue from being flooded by high-frequency gamepad/joystick analog noise
+    SDL_SetEventEnabled(SDL_EVENT_GAMEPAD_AXIS_MOTION, false);
+    SDL_SetEventEnabled(SDL_EVENT_JOYSTICK_AXIS_MOTION, false);
     SDL_PropertiesID props = SDL_CreateProperties();
     SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, title);
     const SDL_DisplayID display = ChooseDisplay();
@@ -93,6 +95,9 @@ WindowSDL::WindowSDL(s32 width_, s32 height_, const char* title) : width{width_}
     window = SDL_CreateWindowWithProperties(props);
     SDL_DestroyProperties(props);
     ASSERT_MSG(window, "Failed to create window: {}", SDL_GetError());
+    if (fullscreen) {
+        SDL_SetWindowFullscreen(window, true);
+    }
 
     const char* driver = SDL_GetCurrentVideoDriver();
     const SDL_PropertiesID wp = SDL_GetWindowProperties(window);
@@ -285,6 +290,15 @@ bool WindowSDL::PollEvents() {
     }
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        // Discard any residual axis motion events to keep event queue completely clear
+        if (event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION || event.type == SDL_EVENT_JOYSTICK_AXIS_MOTION) {
+            continue;
+        }
+        // Notify pad subsystem immediately on gamepad connect/disconnect
+        if (event.type == SDL_EVENT_GAMEPAD_ADDED || event.type == SDL_EVENT_GAMEPAD_REMOVED ||
+            event.type == SDL_EVENT_JOYSTICK_ADDED || event.type == SDL_EVENT_JOYSTICK_REMOVED) {
+            BbOverlay::RequestPadRescan();
+        }
         if (event.type == SDL_EVENT_MOUSE_MOTION) {
             last_mouse_motion_ms = SDL_GetTicks();
         }
@@ -306,6 +320,15 @@ bool WindowSDL::PollEvents() {
         }
         if (BbOverlay::HandleEvent(event)) {
             continue;
+        }
+        if (event.type == SDL_EVENT_KEY_DOWN) {
+            if ((event.key.key == SDLK_RETURN && (event.key.mod & SDL_KMOD_ALT)) || event.key.key == SDLK_F11) {
+                const bool cur_fs = (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) != 0;
+                const bool new_fs = !cur_fs;
+                SDL_SetWindowFullscreen(window, new_fs);
+                BbSettings::Get().fullscreen.store(new_fs, std::memory_order_relaxed);
+                continue;
+            }
         }
         switch (event.type) {
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:

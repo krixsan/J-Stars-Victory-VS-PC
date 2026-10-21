@@ -23,12 +23,15 @@ if (Test-Path $target) {
 New-Item -ItemType Directory -Path $target | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $target "extracted_game\app0\savedata") | Out-Null
 
-# 2. Build / Compile Launcher.exe if not already compiled
+# 2. Build / Compile Launcher.exe
 $launcherExe = Join-Path $root "out\Launcher.exe"
-if (-not (Test-Path $launcherExe)) {
-    Write-Host "[2/6] Compiling Launcher.exe via .NET csc.exe..." -ForegroundColor Yellow
-    $csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-    $launcherSrc = Join-Path $root "tools\Launcher.cs"
+$iconPath = Join-Path $root "assets\jstars.ico"
+Write-Host "[2/6] Compiling Modern Gaming Launcher.exe via .NET csc.exe..." -ForegroundColor Yellow
+$csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+$launcherSrc = Join-Path $root "tools\Launcher.cs"
+if (Test-Path $iconPath) {
+    & $csc /target:winexe /optimize+ /platform:x64 /win32icon:$iconPath /out:$launcherExe $launcherSrc | Out-Null
+} else {
     & $csc /target:winexe /optimize+ /platform:x64 /out:$launcherExe $launcherSrc | Out-Null
 }
 
@@ -37,6 +40,9 @@ Copy-Item (Join-Path $root "out\Launcher.exe") -Destination $target
 Copy-Item (Join-Path $root "out\jstars_pc.exe") -Destination $target
 Copy-Item (Join-Path $root "out\boot-linked.bin") -Destination $target
 Copy-Item (Join-Path $root "out\import_names.txt") -Destination $target
+if (Test-Path (Join-Path $root "out\bbport.ini")) {
+    Copy-Item (Join-Path $root "out\bbport.ini") -Destination $target
+}
 
 # 3. Copy all 99 runtime DLLs from out/
 Write-Host "[4/6] Bundling all 99 standalone runtime DLLs..." -ForegroundColor Green

@@ -1362,6 +1362,10 @@ bool MenuOpen() {
     return menu_open;
 }
 
+void RequestPadRescan() {
+    pad_rescan_requested.store(true, std::memory_order_relaxed);
+}
+
 bool TakePadRescan() {
     return pad_rescan_requested.exchange(false, std::memory_order_relaxed);
 }

@@ -144,14 +144,10 @@ s32 PS4_SYSV_ABI sceVideoOutSetFlipRate(s32 handle, s32 rate) {
     if (!port) {
         return ORBIS_VIDEO_OUT_ERROR_INVALID_HANDLE;
     }
-    // J-Stars: eboot 0x43d903 requests rate 1 (30 FPS) / 2 (20 FPS). Force 0 (60 FPS)
-    // unless BB_KEEP_FLIPRATE=1 or JSTARS_30FPS=1.
-    static const bool keep = [] {
-        const char* v = std::getenv("BB_KEEP_FLIPRATE");
-        const char* j = std::getenv("JSTARS_30FPS");
-        return (v && *v == '1') || (j && *j == '1');
-    }();
-    const s32 applied = keep ? rate : 0;
+    // J-Stars: eboot 0x43d903 requests rate 1 (30 FPS) / 2 (20 FPS). Always force 0
+    // so the Vulkan presenter never stalls or drops out-of-phase frames (prevents black screen).
+    // Target framerate is smoothly paced by BB_FPS_LIMIT.
+    const s32 applied = 0;
     static int logged = 0;
     if (logged < 4) {
         std::printf("[J-STARS] sceVideoOutSetFlipRate(%d) -> %d\n", rate, applied);

@@ -1,26 +1,41 @@
 # ====================================================================
-# anyPS4 - Modular PS4-to-PC Translation Wrapper Template .gitignore
+# J-Stars Victory VS+ PC (.gitignore)
 # ====================================================================
 
-# 1. Build Outputs & Compilations
-out/
+# Binary game & Aset berhak cipta
+*.bin
+*.elf
+*.prx
+*.pkg
+*.cpk
+*.self
+*.sfo
+*.trp
+*.plt
+extracted_game/
+workspace/
+game_dump/
+savedata/
+user/
+J-Stars Victory+ PC Version/
+dist_template/extracted_game/
+
+# Build outputs & Dynamic libraries
 build/
+out/
 bin/
 obj/
-*.o
-*.obj
-*.a
+*.exe
+*.dll
 *.lib
 *.pdb
 *.ilk
 *.exp
+*.o
+*.obj
+*.a
 
-# 2. Executables & Bundled Runtime Libraries
-*.exe
-*.dll
-!tools/deps/*.dll
-
-# 3. Portable Distribution Output Packages
+# Portable packages & archives
 JStars_PC_Portable/
 *_Portable/
 *.zip
@@ -28,44 +43,14 @@ JStars_PC_Portable/
 *.tar.gz
 *.rar
 
-# 4. Raw Game Files, Firmware Modules & Copyrighted Assets
-workspace/*
-!workspace/.gitkeep
-!workspace/README.md
-game_dump/
-extracted_game/
-*.pkg
-*.prx
-*.elf
-*.bin
-*.cpk
-*.self
-*.sfo
-*.trp
-*.plt
-
-# 5. Runtime User Data, Save Data & Logs
-*.log
-*.err
-savedata/
-user/
-launcher_config.ini
-
-# 6. Local Configurations (Keep template configs in targets/)
-*.ini
-!targets/**/*.ini
-!targets/**/target.ini
-
-# 7. IDE & Editor Specific Files
+# Tooling / Cache / Logs
 .vs/
 .vscode/
 .idea/
-CMakeSettings.json
-*.user
-*.suo
-*.sln.docstates
-
-# 8. Python Cache & Environment
+*.log
+*.err
+stdout.txt
+stderr.txt
 __pycache__/
 *.py[cod]
 *$py.class
@@ -73,8 +58,17 @@ __pycache__/
 .env
 venv/
 env/
+CMakeSettings.json
+*.user
+*.suo
+*.sln.docstates
 
-# 9. Scratch & Temporary Analysis Dumps
+# Configs & Temp files
+*.ini
+!targets/**/*.ini
+!targets/**/target.ini
+launcher_config.ini
 temp_ctr/
 scratch/
 dlss_bridge/
+shell_icon_debug.png
