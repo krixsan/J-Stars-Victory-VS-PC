@@ -1,4 +1,0 @@
-// CTR-NitroFueled-PC.exe (launcher/windows): icon and manifest.
-#include <winuser.h>
-1 ICON "icons/jstars.ico"
-1 RT_MANIFEST "launcher.manifest"

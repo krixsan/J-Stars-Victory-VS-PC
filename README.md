@@ -6,6 +6,11 @@
 [![Release](https://img.shields.io/badge/Version-v1.02%20Standalone-orange.svg)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC/releases)
 [![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv2-green.svg)](LICENSE)
 
+> ### 🚀 **[Download Latest Portable Release (v1.0.0)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC/releases/latest)**
+> Unduh file zip portable (`J-Stars-Victory-VS-PC-portable-windows.zip`), ekstrak, lalu taruh dump game Anda ke `extracted_game/app0/` untuk langsung bermain tanpa perlu kompilasi!
+
+---
+
 Native translation wrapper dan PC loader mandiri (*standalone PC port*) khusus untuk **J-Stars Victory VS+** (PlayStation 4 - Title ID: `CUSA01887` / `CUSA01593`) pada Windows x86-64. 
 
 Proyek ini mengeksekusi instruksi biner x86-64 PS4 langsung di CPU host tanpa overhead virtualisasi atau emulasi CPU penuh, dipadukan dengan subsystem High-Level Emulation (HLE) untuk kernel Orbis OS dan backend grafis native **Vulkan 1.3+**.

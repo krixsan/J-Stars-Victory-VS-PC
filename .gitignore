@@ -2,7 +2,7 @@
 # J-Stars Victory VS+ PC (.gitignore)
 # ====================================================================
 
-# Binary game & Aset berhak cipta
+# Game binaries & copyrighted assets
 *.bin
 *.elf
 *.prx
@@ -18,7 +18,7 @@ game_dump/
 savedata/
 user/
 J-Stars Victory+ PC Version/
-dist_template/extracted_game/
+dist_template/
 
 # Build outputs & Dynamic libraries
 build/
@@ -35,15 +35,35 @@ obj/
 *.obj
 *.a
 
-# Portable packages & archives
-JStars_PC_Portable/
-*_Portable/
+# Source code directories (excluded from release repository)
+core/
+gpu/
+launcher/
+packaging/
+scripts/
+src/
+targets/
+tests/
+third_party/
+tools/
+CMakeLists.txt
+msys2-env.sh
+build.sh
+keys_cs.txt
+main.py
+package.py
+play.bat
+ps4_unfself_orig.py
+utils.py
+.agents/
+
+# Tooling / Cache / Logs / Portable archives
 *.zip
 *.7z
 *.tar.gz
 *.rar
-
-# Tooling / Cache / Logs
+JStars_PC_Portable/
+*_Portable/
 .vs/
 .vscode/
 .idea/
@@ -62,12 +82,7 @@ CMakeSettings.json
 *.user
 *.suo
 *.sln.docstates
-
-# Configs & Temp files
 *.ini
-!targets/**/*.ini
-!targets/**/target.ini
-launcher_config.ini
 temp_ctr/
 scratch/
 dlss_bridge/
