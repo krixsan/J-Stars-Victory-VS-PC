@@ -8,6 +8,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
+# anyPS Universal Platform and Target Game Options
+set(PLATFORM "ps4" CACHE STRING "Target platform: ps4 or ps5")
+set(TARGET_GAME "jstars" CACHE STRING "Target game profile: jstars, basara4, template, etc.")
+
 # Frame pointers keep the loader's thread dumps (watchdog, SIGUSR2 sampling) walkable.
 add_compile_options(-fno-omit-frame-pointer)
 if (WIN32)
@@ -229,13 +233,36 @@ endif()
 # SacredFire: the game executable is sacredfire.exe (out/sacredfire on Linux).
 if (WIN32)
     enable_language(RC)
-    file(GLOB BB_RUNTIME CONFIGURE_DEPENDS ../src/runtime*.c)
+    message(STATUS "[anyPS] Configuring build for PLATFORM='${PLATFORM}', TARGET_GAME='${TARGET_GAME}'")
+
+    set(TARGET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../targets/${PLATFORM}_${TARGET_GAME}")
+    if (EXISTS "${TARGET_DIR}/${TARGET_GAME}_patches.c")
+        set(TARGET_PATCH_SRC "${TARGET_DIR}/${TARGET_GAME}_patches.c")
+    elseif (EXISTS "${TARGET_DIR}/patches.c")
+        set(TARGET_PATCH_SRC "${TARGET_DIR}/patches.c")
+    elseif (EXISTS "${TARGET_DIR}/ps5_patches.c")
+        set(TARGET_PATCH_SRC "${TARGET_DIR}/ps5_patches.c")
+    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../targets/ps4_jstars/jstars_patches.c")
+        set(TARGET_PATCH_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../targets/ps4_jstars/jstars_patches.c")
+    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../src/jstars_patches.c")
+        set(TARGET_PATCH_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../src/jstars_patches.c")
+    endif()
+
+    if (PLATFORM STREQUAL "ps5")
+        file(GLOB BB_RUNTIME CONFIGURE_DEPENDS ../core/os/ps5/prospero*.c)
+        add_compile_definitions(ANYPS_PLATFORM_PS5)
+    else()
+        file(GLOB BB_RUNTIME CONFIGURE_DEPENDS ../src/runtime*.c)
+        add_compile_definitions(ANYPS_PLATFORM_PS4)
+    endif()
+
     file(GLOB BB_ATRAC9 CONFIGURE_DEPENDS ../third_party/LibAtrac9/C/src/*.c)
     add_library(atrac9 STATIC ${BB_ATRAC9})
     target_compile_options(atrac9 PRIVATE -w)
     set_target_properties(atrac9 PROPERTIES C_STANDARD 99 INTERPROCEDURAL_OPTIMIZATION OFF)
+
     add_executable(sacredfire ../src/probe.c ${BB_RUNTIME} ../src/compat_win.c ../src/cpu_check.c ../src/vulkan_smoke.c
-        ../src/isa_rewrite.c ../src/isa_emulate.c ../src/jstars_patches.c
+        ../src/isa_rewrite.c ../src/isa_emulate.c ${TARGET_PATCH_SRC} ../core/cpu/elf_loader.c
         ../packaging/windows/sacredfire.rc)
     set_target_properties(sacredfire PROPERTIES C_STANDARD 11 C_EXTENSIONS OFF)
     # isa_emulate runs inside guest code: no XMM/YMM.
@@ -243,12 +270,18 @@ if (WIN32)
     # Newer clang (MSYS2) warns about write-only counters kept for diagnostics.
     target_compile_options(sacredfire PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wall -Wextra -Werror
         -Wno-unknown-warning-option -Wno-unused-but-set-global -Wno-unused-parameter -Wno-unused-function -Wno-unused-const-variable -Wno-unused-variable>)
-    target_include_directories(sacredfire PRIVATE .. ../src)
+    target_include_directories(sacredfire PRIVATE .. ../src ../core/cpu ../core/os ../core/gpu/include ${TARGET_DIR})
     target_link_libraries(sacredfire PRIVATE bbgpu atrac9 onecore bcrypt ws2_32 -pthread)
-    # The PS4 range (64 GiB - 1 TiB) must stay free: no high-entropy ASLR for heaps and stacks.
+    # The PS4/PS5 range must stay free: no high-entropy ASLR for heaps and stacks.
     # The guest main thread runs on the process stack: 16 MiB, committed (no stack probes).
     target_link_options(sacredfire PRIVATE -Wl,--disable-high-entropy-va "SHELL:-Xlinker --stack -Xlinker 16777216,16777216")
     add_custom_command(TARGET sacredfire POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:sacredfire>
+            ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_GAME}_pc.exe
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:sacredfire>
+            ${CMAKE_CURRENT_BINARY_DIR}/anyps_${PLATFORM}_${TARGET_GAME}.exe
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:sacredfire>
             ${CMAKE_CURRENT_BINARY_DIR}/jstars_pc.exe)

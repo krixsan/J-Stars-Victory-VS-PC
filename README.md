@@ -1,7 +1,7 @@
-# anyPS4
+# anyPS
 
-> **Modular PlayStation 4 to PC Native Translation Wrapper Template**  
-> *Execute PS4 x86-64 games directly on Windows without full-system emulation overhead.*
+> **Universal PlayStation 4 & PlayStation 5 to PC Translation Wrapper Template**  
+> *Execute PS4 (Orbis OS) and PS5 (Prospero OS) x86-64 binaries directly on Windows PC with modular HLE and native Vulkan graphics.*
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-blue.svg)](https://microsoft.com/windows)
 [![Graphics](https://img.shields.io/badge/Renderer-Vulkan%201.3+-red.svg)](https://vulkan.org)
@@ -12,38 +12,61 @@
 
 ## Ikhtisar (Overview)
 
-**anyPS4** adalah kerangka kerja modular berbasis template untuk mengubah game konsol PlayStation 4 (Orbis OS x86-64) menjadi game Native Windows PC. 
+**anyPS** adalah kerangka kerja terpadu (*Universal Translation Wrapper*) modular untuk menjalankan biner game konsol **PlayStation 4** dan **PlayStation 5** langsung pada arsitektur Windows PC x86-64 tanpa overhead emulasi CPU penuh.
 
-Dengan memanfaatkan arsitektur prosesor PS4 yang sudah berbasis x86-64, game dijalankan langsung pada CPU komputer tanpa emulasi instruksi CPU. Panggilan sistem operasi (*syscalls*) dan library native ditangani melalui lapisan HLE (*High-Level Emulation*), dan perintah grafis AMD Liverpool GNM diterjemahkan secara real-time ke **Vulkan 1.3+**.
+Karena kedua konsol menggunakan arsitektur x86-64 (AMD Jaguar pada PS4 dan AMD Zen 2 pada PS5), game dieksekusi secara native langsung di CPU host. Lapisan HLE modular menangani panggilan kernel Orbis OS maupun Prospero OS, dan pipeline grafis (Liverpool GNM & Oberon AGC) bermuara ke backend native **Vulkan 1.3+**.
 
 ---
 
 ## Fitur Utama
 
-- ⚡ **Native x86-64 Execution:** Performa CPU maksimal tanpa kompilasi ulang JIT dinamis.
-- 🎮 **Vulkan 1.3+ Graphics Backend:** Renderer Vulkan berkemampuan tinggi dengan dukungan multi-threading command recording dan FSR upscaling.
-- ⏱️ **60 FPS & Delta-Time Fixed:** Protokol REA terintegrasi untuk menormalkan kecepatan permainan (mencegah *fast-forward* 2x lipat saat 60 FPS dibuka).
-- 🕹️ **Controller Ready (XInput & SDL3):** Dukungan penuh plug-and-play untuk stik Xbox Series/One, DualShock 4, DualSense, serta Keyboard.
-- 📦 **1-Click Standalone Bundling:** Otomatisasi pembuatan paket game portabel lengkap dengan seluruh 99 runtime DLL tanpa membutuhkan instalasi software eksternal di komputer pengguna.
-- 🖥️ **Custom GUI Launcher:** Launcher interaktif dengan status koneksi stik real-time, pengatur resolusi, dan pemilih FPS.
+- ⚡ **Universal Multi-Platform HLE (`core/os/`):**
+  - **PS4 (Orbis OS):** FreeBSD 9.0 kernel HLE, direct memory mapping (5056 MiB/4864 MiB), pthreads via TEB TLS.
+  - **PS5 (Prospero OS):** FreeBSD 12+ kernel HLE, 16 GiB unified GDDR6 memory mapping, Zen 2 AVX2/FMA3 dispatch.
+- 🔍 **Universal ELF/SELF Loader (`core/cpu/`):**
+  - Deteksi otomatis biner PS4 vs PS5 dari header ELF64/SELF/PRX dan ekstensi SCE.
+  - Pembaca versi SDK, Program Headers (`PT_SCE_PROGLIB`), dan relokasi dynamic linking.
+- 🎮 **Modular Vulkan 1.3+ GPU Backend (`core/gpu/`):**
+  - **PS4 GNM:** Dekoder paket PM4 Liverpool dan translator shader GCN ke SPIR-V.
+  - **PS5 AGC:** Pipeline RDNA 2 modern, Primitive/Mesh Shaders, dan Ray Tracing acceleration abstraction.
+  - **Unified Presenter:** Triple buffering bebas deadlock (`VK_PRESENT_MODE_MAILBOX_KHR`) dan pembatas framerate multimedia 1ms presisi.
+- 🎯 **Target Modular (`targets/<platform>_<game_id>`):**
+  - Konfigurasi game terpisah per platform: `ps4_jstars`, `ps4_basara4`, `ps5_template`.
+  - Dukungan parameter build fleksibel: `-DPLATFORM=ps4 -DTARGET_GAME=jstars`.
+- 🛠️ **REA Automated Triage (`tools/rea_triase.py`):**
+  - Script analisis biner instan untuk memverifikasi format file, platform target, versi SDK, dan modul impor.
 
 ---
 
 ## Struktur Repositori
 
 ```
-anyPS4/
+anyPS/
+├── CMakeLists.txt            # Root build script (-DPLATFORM=... -DTARGET_GAME=...)
 ├── core/
-│   ├── runtime/       # HLE Kernel PS4: Memory, Threads, VFS, Audio WASAPI, Gamepad
-│   └── gpu/           # Liverpool GNM to Vulkan 1.3 translation backend
+│   ├── os/
+│   │   ├── os_interface.h    # Kontrak antarmuka OS universal
+│   │   ├── ps4/              # HLE Orbis OS: Virtual Memory, Threading, VFS, WASAPI
+│   │   └── ps5/              # HLE Prospero OS: 16GB GDDR6, Zen 2, Tempest 3D
+│   ├── cpu/
+│   │   ├── elf_loader.h      # Universal ELF/SELF header reader & validator
+│   │   └── elf_loader.c      # Detektor platform otomatis (PS4 vs PS5)
+│   └── gpu/
+│       ├── include/          # Kontrak GPU backend & shader translator
+│       ├── gnm/              # PS4 Liverpool GNM (GCN -> SPIR-V)
+│       ├── agc/              # PS5 Oberon AGC (RDNA 2 -> SPIR-V)
+│       └── vulkan/           # Unified Vulkan 1.3+ Renderer & Presenter
 ├── targets/
-│   ├── template/      # Kerangka boilerplate untuk target game baru
-│   ├── jstars/        # Profil referensi terverifikasi: J-Stars Victory VS+ (60 FPS)
-│   └── basara4/       # Profil target berikutnya: Sengoku Basara 4: Sumeragi
-├── tools/             # Script build, analisis binary ELF, dan packaging portable
-├── workspace/         # Area kerja lokal untuk file game (dikecualikan dari Git)
-├── anyPS4.md          # Dokumen arsitektur lengkap
-└── PRD.md             # Product Requirements Document
+│   ├── ps4_jstars/           # Profil referensi terverifikasi: J-Stars Victory VS+ (60 FPS Fix)
+│   ├── ps4_basara4/          # Profil target berikutnya: Sengoku Basara 4: Sumeragi
+│   ├── ps5_template/         # Kerangka boilerplate untuk target game PS5
+│   └── template/             # Template target umum
+├── tools/
+│   ├── rea_triase.py         # Universal REA binary & SDK triage tool
+│   ├── Launcher.cs           # Source launcher GUI C# WinForms asinkron
+│   ├── win_build.sh          # Pipeline kompilasi otomatis MSYS2 Clang64
+│   └── make_portable.ps1     # Script bundling 99 DLL runtime standalone
+└── workspace/                # Direktori kerja lokal untuk dump game (dikecualikan Git)
 ```
 
 ---
@@ -52,39 +75,52 @@ anyPS4/
 
 ### 1. Prasyarat Sistem
 - **Windows 10 / 11 64-bit**
-- **MSYS2 Clang64 Toolchain:**
+- **MSYS2 Clang64 Environment:**
   ```bash
   pacman -S mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-ninja mingw-w64-clang-x86_64-cmake
+  pacman -S mingw-w64-clang-x86_64-vulkan-devel mingw-w64-clang-x86_64-sdl3 mingw-w64-clang-x86_64-ffmpeg
   ```
-- **GPU:** Mendukung Vulkan 1.3+ (NVIDIA Driver 550+, AMD Adrenalin 24+, Intel Arc)
+- **GPU:** Kompatibel Vulkan 1.3+ (NVIDIA Driver 550+, AMD Adrenalin 24+, Intel Arc)
 
-### 2. Membangun Proyek (Build)
-Buka terminal MSYS2 Clang64 di direktori repositori:
+### 2. Analisis Biner Game (Triage)
+Jalankan script triage REA untuk mendeteksi platform dan konfigurasi target:
 ```bash
-./tools/win_build.sh
+python tools/rea_triase.py path/to/eboot.bin
 ```
 
-### 3. Membuat Paket Portable Standalone
-Buka PowerShell dan jalankan:
-```powershell
-.\tools\make_portable.ps1
+### 3. Kompilasi Target Spesifik
+
+Gunakan parameter `PLATFORM` dan `TARGET_GAME`:
+
+```bash
+# Kompilasi J-Stars Victory VS+ (PS4)
+cmake -B build -DPLATFORM=ps4 -DTARGET_GAME=jstars
+cmake --build build
+
+# Kompilasi Sengoku Basara 4 (PS4)
+cmake -B build -DPLATFORM=ps4 -DTARGET_GAME=basara4
+cmake --build build
+
+# Kompilasi Target PS5
+cmake -B build -DPLATFORM=ps5 -DTARGET_GAME=template
+cmake --build build
 ```
-Hasil paket portabel siap dimainkan akan berada di direktori `JStars_PC_Portable/`.
 
 ---
 
 ## Status Target Game
 
-| Target Game | Engine | Status | Framerate |
-| :--- | :--- | :---: | :---: |
-| **J-Stars Victory VS+** (`CUSA01593` / `CUSA01661`) | Custom + Havok | **Playable (100%)** | 60 FPS (Speed Fixed) |
-| **Sengoku Basara 4: Sumeragi** (`CUSA02057`) | MT Framework | Planned / In Triage | 60 FPS Target |
-| **Custom Target Template** | Any | Ready to Use | Configurable |
+| Platform | Game Profile | Title ID | Status | Catatan Teknis |
+| :--- | :--- | :--- | :--- | :--- |
+| **PS4** | `ps4_jstars` | CUSA01593 | **Playable (60 FPS)** | Havok timestep fix, delta-time 0.5x scale, VSync mailbox |
+| **PS4** | `ps4_basara4` | CUSA02057 | **In-Triaging** | Capcom MT Framework engine, 60 FPS native |
+| **PS5** | `ps5_template`| PPSA00000 | **Skeleton** | Template arsitektur Prospero OS & AGC pipeline |
 
 ---
 
-## Pernyataan Hukum & Hak Cipta (Disclaimer)
+## Legal & Clean-Room Disclaimer
 
-> Repositori **anyPS4** tidak mendistribusikan, menyertakan, atau membagikan file game berhak cipta, ROM, dump ISO/PKG, file sistem PlayStation 4 resmi, atau kunci kriptografi apa pun milik Sony Interactive Entertainment atau pengembang game terkait.
-> 
-> Pengguna bertanggung jawab penuh untuk menyediakan salinan game resmi (*clean game dump*) yang diperoleh dari media fisik atau digital milik pribadi secara sah.
+Proyek **anyPS** dikembangkan semata-mata untuk tujuan penelitian interoperabilitas perangkat lunak (*clean-room reverse engineering*) dan preservasi game. 
+
+- Repositori ini **TIDAK** menyertakan, mendistribusikan, maupun membagikan file game berhak cipta, dump file `eboot.bin`, ROM, file `.pkg`, file audio/grafis komersial, maupun file enkripsi/dekripsi milik Sony Interactive Entertainment atau penerbit game terkait.
+- Pengguna wajib menyediakan dan mengekstrak file game legal milik sendiri dari konsol yang sah ke dalam direktori lokal `workspace/`.
