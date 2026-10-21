@@ -233,28 +233,17 @@ endif()
 # SacredFire: the game executable is sacredfire.exe (out/sacredfire on Linux).
 if (WIN32)
     enable_language(RC)
-    message(STATUS "[anyPS] Configuring build for PLATFORM='${PLATFORM}', TARGET_GAME='${TARGET_GAME}'")
+    message(STATUS "[JStarsPC] Configuring build for J-Stars Victory VS+ PC")
 
-    set(TARGET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../targets/${PLATFORM}_${TARGET_GAME}")
-    if (EXISTS "${TARGET_DIR}/${TARGET_GAME}_patches.c")
-        set(TARGET_PATCH_SRC "${TARGET_DIR}/${TARGET_GAME}_patches.c")
-    elseif (EXISTS "${TARGET_DIR}/patches.c")
-        set(TARGET_PATCH_SRC "${TARGET_DIR}/patches.c")
-    elseif (EXISTS "${TARGET_DIR}/ps5_patches.c")
-        set(TARGET_PATCH_SRC "${TARGET_DIR}/ps5_patches.c")
-    elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../targets/ps4_jstars/jstars_patches.c")
-        set(TARGET_PATCH_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../targets/ps4_jstars/jstars_patches.c")
+    set(TARGET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../targets/ps4_jstars")
+    if (EXISTS "${TARGET_DIR}/jstars_patches.c")
+        set(TARGET_PATCH_SRC "${TARGET_DIR}/jstars_patches.c")
     elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../src/jstars_patches.c")
         set(TARGET_PATCH_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../src/jstars_patches.c")
     endif()
 
-    if (PLATFORM STREQUAL "ps5")
-        file(GLOB BB_RUNTIME CONFIGURE_DEPENDS ../core/os/ps5/prospero*.c)
-        add_compile_definitions(ANYPS_PLATFORM_PS5)
-    else()
-        file(GLOB BB_RUNTIME CONFIGURE_DEPENDS ../src/runtime*.c)
-        add_compile_definitions(ANYPS_PLATFORM_PS4)
-    endif()
+    file(GLOB BB_RUNTIME CONFIGURE_DEPENDS ../src/runtime*.c)
+    add_compile_definitions(JSTARS_PLATFORM_PS4)
 
     file(GLOB BB_ATRAC9 CONFIGURE_DEPENDS ../third_party/LibAtrac9/C/src/*.c)
     add_library(atrac9 STATIC ${BB_ATRAC9})
@@ -276,12 +265,6 @@ if (WIN32)
     # The guest main thread runs on the process stack: 16 MiB, committed (no stack probes).
     target_link_options(sacredfire PRIVATE -Wl,--disable-high-entropy-va "SHELL:-Xlinker --stack -Xlinker 16777216,16777216")
     add_custom_command(TARGET sacredfire POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:sacredfire>
-            ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_GAME}_pc.exe
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:sacredfire>
-            ${CMAKE_CURRENT_BINARY_DIR}/anyps_${PLATFORM}_${TARGET_GAME}.exe
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:sacredfire>
             ${CMAKE_CURRENT_BINARY_DIR}/jstars_pc.exe)

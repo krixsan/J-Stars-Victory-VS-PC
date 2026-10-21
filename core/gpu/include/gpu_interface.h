@@ -17,8 +17,7 @@ extern "C" {
 #endif
 
 typedef enum anyps_gpu_api_type {
-    GPU_API_GNM_PS4 = 0, /* Sony Liverpool GNM / GCN Generation */
-    GPU_API_AGC_PS5 = 1  /* Sony Oberon AGC / RDNA 2 Generation */
+    GPU_API_GNM_PS4 = 0  /* Sony Liverpool GNM / GCN Generation */
 } anyps_gpu_api_type_t;
 
 typedef enum anyps_shader_stage {
@@ -27,10 +26,7 @@ typedef enum anyps_shader_stage {
     SHADER_STAGE_COMPUTE                 = 0x04,
     SHADER_STAGE_GEOMETRY                = 0x08,
     SHADER_STAGE_TESS_CONTROL            = 0x10,
-    SHADER_STAGE_TESS_EVAL               = 0x20,
-    SHADER_STAGE_MESH_PS5                = 0x40, /* AGC specific */
-    SHADER_STAGE_TASK_PS5                = 0x80, /* AGC specific */
-    SHADER_STAGE_RAYGEN_PS5              = 0x100 /* AGC specific */
+    SHADER_STAGE_TESS_EVAL               = 0x20
 } anyps_shader_stage_t;
 
 typedef struct anyps_spirv_output {

@@ -1,126 +1,110 @@
-# anyPS
-
-> **Universal PlayStation 4 & PlayStation 5 to PC Translation Wrapper Template**  
-> *Execute PS4 (Orbis OS) and PS5 (Prospero OS) x86-64 binaries directly on Windows PC with modular HLE and native Vulkan graphics.*
+# J-Stars Victory VS+ PC
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-blue.svg)](https://microsoft.com/windows)
 [![Graphics](https://img.shields.io/badge/Renderer-Vulkan%201.3+-red.svg)](https://vulkan.org)
-[![Compiler](https://img.shields.io/badge/Toolchain-MSYS2%20Clang64-success.svg)](https://www.msys2.org/)
-[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv2-orange.svg)](LICENSE)
+[![Framerate](https://img.shields.io/badge/Framerate-60%20FPS%20Native-success.svg)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC)
+[![Release](https://img.shields.io/badge/Version-v1.02%20Standalone-orange.svg)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC/releases)
+[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv2-green.svg)](LICENSE)
 
----
+Native translation wrapper dan PC loader mandiri (*standalone PC port*) khusus untuk **J-Stars Victory VS+** (PlayStation 4 - Title ID: `CUSA01887` / `CUSA01593`) pada Windows x86-64. 
 
-## Ikhtisar (Overview)
-
-**anyPS** adalah kerangka kerja terpadu (*Universal Translation Wrapper*) modular untuk menjalankan biner game konsol **PlayStation 4** dan **PlayStation 5** langsung pada arsitektur Windows PC x86-64 tanpa overhead emulasi CPU penuh.
-
-Karena kedua konsol menggunakan arsitektur x86-64 (AMD Jaguar pada PS4 dan AMD Zen 2 pada PS5), game dieksekusi secara native langsung di CPU host. Lapisan HLE modular menangani panggilan kernel Orbis OS maupun Prospero OS, dan pipeline grafis (Liverpool GNM & Oberon AGC) bermuara ke backend native **Vulkan 1.3+**.
+Proyek ini mengeksekusi instruksi biner x86-64 PS4 langsung di CPU host tanpa overhead virtualisasi atau emulasi CPU penuh, dipadukan dengan subsystem High-Level Emulation (HLE) untuk kernel Orbis OS dan backend grafis native **Vulkan 1.3+**.
 
 ---
 
 ## Fitur Utama
 
-- ⚡ **Universal Multi-Platform HLE (`core/os/`):**
-  - **PS4 (Orbis OS):** FreeBSD 9.0 kernel HLE, direct memory mapping (5056 MiB/4864 MiB), pthreads via TEB TLS.
-  - **PS5 (Prospero OS):** FreeBSD 12+ kernel HLE, 16 GiB unified GDDR6 memory mapping, Zen 2 AVX2/FMA3 dispatch.
-- 🔍 **Universal ELF/SELF Loader (`core/cpu/`):**
-  - Deteksi otomatis biner PS4 vs PS5 dari header ELF64/SELF/PRX dan ekstensi SCE.
-  - Pembaca versi SDK, Program Headers (`PT_SCE_PROGLIB`), dan relokasi dynamic linking.
-- 🎮 **Modular Vulkan 1.3+ GPU Backend (`core/gpu/`):**
-  - **PS4 GNM:** Dekoder paket PM4 Liverpool dan translator shader GCN ke SPIR-V.
-  - **PS5 AGC:** Pipeline RDNA 2 modern, Primitive/Mesh Shaders, dan Ray Tracing acceleration abstraction.
-  - **Unified Presenter:** Triple buffering bebas deadlock (`VK_PRESENT_MODE_MAILBOX_KHR`) dan pembatas framerate multimedia 1ms presisi.
-- 🎯 **Target Modular (`targets/<platform>_<game_id>`):**
-  - Konfigurasi game terpisah per platform: `ps4_jstars`, `ps4_basara4`, `ps5_template`.
-  - Dukungan parameter build fleksibel: `-DPLATFORM=ps4 -DTARGET_GAME=jstars`.
-- 🛠️ **REA Automated Triage (`tools/rea_triase.py`):**
-  - Script analisis biner instan untuk memverifikasi format file, platform target, versi SDK, dan modul impor.
+- ⚡ **60 FPS Unlocked Gameplay:** Patch native loop render game yang membuka framerate dari batasan 30 FPS konsol ke 60 FPS mulus dengan pacing animasi yang sinkron.
+- 🌋 **Native Vulkan 1.3+ Renderer:** Penerjemahan GNM draw calls dan GCN shaders langsung ke SPIR-V/Vulkan, mendukung resolusi native (1080p, 1440p, 4K Ultrawide), HDR, dan triple buffering bebas tearing.
+- 🎮 **Multi-Controller Support (2-Player Local VS):** Pemisahan hardware controller secara fisik (Handle 0 & Handle 1) untuk mode pertarungan 2 Player Local Versus tanpa bentrok input.
+- ⚡ **Zero-Lag Input Pipeline:** Pembacaan status controller instan (*direct polling*) dari hardware via SDL3 Gamepad API dengan penyaringan noise analog stick.
+- 🖥️ **Modern Game Launcher UI:** Antarmuka launcher modern tanpa border (borderless window) dengan latar belakang official splash art, seleksi resolusi, mode layar (Windowed/Borderless Fullscreen), audio volume control, dan indikator status stik real-time.
+- ⌨️ **Full Keyboard & Gamepad Compatibility:** Dukungan bawaan untuk berbagai controller (Xbox / XInput, DualShock 4, DualSense, Nintendo Switch Pro Controller, gamepad generik) serta kontrol keyboard penuh.
 
 ---
 
-## Struktur Repositori
-
-```
-anyPS/
-├── CMakeLists.txt            # Root build script (-DPLATFORM=... -DTARGET_GAME=...)
-├── core/
-│   ├── os/
-│   │   ├── os_interface.h    # Kontrak antarmuka OS universal
-│   │   ├── ps4/              # HLE Orbis OS: Virtual Memory, Threading, VFS, WASAPI
-│   │   └── ps5/              # HLE Prospero OS: 16GB GDDR6, Zen 2, Tempest 3D
-│   ├── cpu/
-│   │   ├── elf_loader.h      # Universal ELF/SELF header reader & validator
-│   │   └── elf_loader.c      # Detektor platform otomatis (PS4 vs PS5)
-│   └── gpu/
-│       ├── include/          # Kontrak GPU backend & shader translator
-│       ├── gnm/              # PS4 Liverpool GNM (GCN -> SPIR-V)
-│       ├── agc/              # PS5 Oberon AGC (RDNA 2 -> SPIR-V)
-│       └── vulkan/           # Unified Vulkan 1.3+ Renderer & Presenter
-├── targets/
-│   ├── ps4_jstars/           # Profil referensi terverifikasi: J-Stars Victory VS+ (60 FPS Fix)
-│   ├── ps4_basara4/          # Profil target berikutnya: Sengoku Basara 4: Sumeragi
-│   ├── ps5_template/         # Kerangka boilerplate untuk target game PS5
-│   └── template/             # Template target umum
-├── tools/
-│   ├── rea_triase.py         # Universal REA binary & SDK triage tool
-│   ├── Launcher.cs           # Source launcher GUI C# WinForms asinkron
-│   ├── win_build.sh          # Pipeline kompilasi otomatis MSYS2 Clang64
-│   └── make_portable.ps1     # Script bundling 99 DLL runtime standalone
-└── workspace/                # Direktori kerja lokal untuk dump game (dikecualikan Git)
-```
-
----
-
-## Panduan Cepat (Quick Start)
+## Panduan Cepat (Quick Start / How to Play)
 
 ### 1. Prasyarat Sistem
-- **Windows 10 / 11 64-bit**
-- **MSYS2 Clang64 Environment:**
-  ```bash
-  pacman -S mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-ninja mingw-w64-clang-x86_64-cmake
-  pacman -S mingw-w64-clang-x86_64-vulkan-devel mingw-w64-clang-x86_64-sdl3 mingw-w64-clang-x86_64-ffmpeg
-  ```
-- **GPU:** Kompatibel Vulkan 1.3+ (NVIDIA Driver 550+, AMD Adrenalin 24+, Intel Arc)
+- **Sistem Operasi:** Windows 10 atau Windows 11 (64-bit)
+- **Prosesor:** CPU x86-64 dengan dukungan AVX/AVX2 (Intel Core i5 generasi ke-4+ / AMD Ryzen 3+)
+- **Kartu Grafis:** GPU yang mendukung Vulkan 1.3+ (NVIDIA GeForce GTX 900+, AMD Radeon RX 400+, Intel Arc)
+- **RAM:** Minimal 8 GB RAM (Direkomendasikan 16 GB)
 
-### 2. Analisis Biner Game (Triage)
-Jalankan script triage REA untuk mendeteksi platform dan konfigurasi target:
-```bash
-python tools/rea_triase.py path/to/eboot.bin
-```
+### 2. Pemasangan File Game (Legitimate Game Dump)
+Repositori ini **TIDAK** memuat file aset atau biner terenkripsi game. Anda harus mengekstrak salinan resmi game PS4 milik Anda:
 
-### 3. Kompilasi Target Spesifik
+1. Ekstrak dump game PS4 (*decrypted eboot.bin, PRX modules, and game archives*) ke dalam folder:
+   ```text
+   extracted_game/app0/
+   ```
+2. Pastikan struktur folder menyerupai susunan berikut:
+   ```text
+   extracted_game/app0/
+   ├── eboot.bin
+   ├── sce_module/
+   │   ├── libc.prx
+   │   └── libSceFios2.prx
+   ├── sce_sys/
+   │   ├── icon0.png
+   │   ├── pic0.png
+   │   └── param.sfo
+   └── data/ (atau file arsip .cpk game)
+   ```
 
-Gunakan parameter `PLATFORM` dan `TARGET_GAME`:
-
-```bash
-# Kompilasi J-Stars Victory VS+ (PS4)
-cmake -B build -DPLATFORM=ps4 -DTARGET_GAME=jstars
-cmake --build build
-
-# Kompilasi Sengoku Basara 4 (PS4)
-cmake -B build -DPLATFORM=ps4 -DTARGET_GAME=basara4
-cmake --build build
-
-# Kompilasi Target PS5
-cmake -B build -DPLATFORM=ps5 -DTARGET_GAME=template
-cmake --build build
-```
-
----
-
-## Status Target Game
-
-| Platform | Game Profile | Title ID | Status | Catatan Teknis |
-| :--- | :--- | :--- | :--- | :--- |
-| **PS4** | `ps4_jstars` | CUSA01593 | **Playable (60 FPS)** | Havok timestep fix, delta-time 0.5x scale, VSync mailbox |
-| **PS4** | `ps4_basara4` | CUSA02057 | **In-Triaging** | Capcom MT Framework engine, 60 FPS native |
-| **PS5** | `ps5_template`| PPSA00000 | **Skeleton** | Template arsitektur Prospero OS & AGC pipeline |
+### 3. Memulai Permainan
+1. Jalankan **`Launcher.exe`**.
+2. Pilih resolusi layar yang diinginkan (misal: 1920x1080 atau 2560x1440) dan pilih mode **Fullscreen** atau **Windowed**.
+3. Pastikan controller Anda terdeteksi pada panel status (*Gamepad Connected*).
+4. Klik tombol besar **"PLAY J-STARS"** untuk memulai pertarungan!
 
 ---
 
-## Legal & Clean-Room Disclaimer
+## Tabel Kontrol (Controls Table)
 
-Proyek **anyPS** dikembangkan semata-mata untuk tujuan penelitian interoperabilitas perangkat lunak (*clean-room reverse engineering*) dan preservasi game. 
+Game mendukung kendali stik analog ganda maupun keyboard:
 
-- Repositori ini **TIDAK** menyertakan, mendistribusikan, maupun membagikan file game berhak cipta, dump file `eboot.bin`, ROM, file `.pkg`, file audio/grafis komersial, maupun file enkripsi/dekripsi milik Sony Interactive Entertainment atau penerbit game terkait.
-- Pengguna wajib menyediakan dan mengekstrak file game legal milik sendiri dari konsol yang sah ke dalam direktori lokal `workspace/`.
+| Aksi / Fungsi Game | Gamepad (Xbox Layout) | Gamepad (PlayStation Layout) | Keyboard (Default) |
+| :--- | :--- | :--- | :--- |
+| **Normal Attack (Kotak)** | `X` | `Square` | `J` |
+| **Heavy Attack (Segitiga)** | `Y` | `Triangle` | `I` |
+| **Jump (Silang)** | `A` | `Cross` | `K` |
+| **Special Attack (Lingkaran)** | `B` | `Circle` | `L` |
+| **Guard / Block (L1)** | `LB` | `L1` | `U` |
+| **Target Lock-On (R1)** | `RB` | `R1` | `O` |
+| **Dash / Sprint (R2)** | `RT` | `R2` | `Left Shift` |
+| **Victory Burst (R3)** | `R3 (Right Stick Click)` | `R3` | `Space` |
+| **Movement** | `Left Stick` / `D-Pad` | `Left Stick` / `D-Pad` | `W, A, S, D` |
+| **Camera Control** | `Right Stick` | `Right Stick` | `Panah Atas, Bawah, Kiri, Kanan` |
+| **Pause Menu (Options)** | `Menu / Start` | `Options` | `Enter / Esc` |
+
+---
+
+## Kompilasi dari Source (Build from Source)
+
+Jika Anda ingin mengompilasi biner wrapper secara mandiri:
+
+```bash
+# 1. Buka MSYS2 Clang64 Environment
+source ./msys2-env.sh
+
+# 2. Konfigurasi CMake & Build dengan Ninja
+cmake -B out/gpu -G Ninja -S .
+ninja -C out/gpu sacredfire
+
+# 3. Kompilasi Launcher C#
+dotnet build -c Release tools/Launcher.cs
+```
+
+File executable hasil build akan diletakkan di `out/gpu/jstars_pc.exe`.
+
+---
+
+## Legal Disclaimer
+
+Proyek **J-Stars Victory VS+ PC** adalah proyek riset rekayasa terbalik independen (*independent clean-room reverse engineering project*).
+
+- Proyek ini **TIDAK berafiliasi, didukung, atau disponsori** oleh Bandai Namco Entertainment Inc., Spike Chunsoft Co., Ltd., Shueisha Inc., atau Sony Interactive Entertainment Inc.
+- Repositori ini **TIDAK memuat, mendistribusikan, atau menyertakan file binary berhak cipta, firmware konsol, kunci enkripsi, audio, maupun materi aset game apa pun**.
+- Seluruh merek dagang, judul game, dan karakter Shonen Jump adalah hak milik sah dari pemilik hak cipta masing-masing.
+- Pengguna diwajibkan memiliki dan menggunakan salinan game resmi (*legally purchased copy*) dari PlayStation 4 untuk dapat memainkan port ini di PC.

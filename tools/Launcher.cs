@@ -563,7 +563,7 @@ namespace JStarsLauncher
             this.Controls.Add(btnReadme);
 
             Label footerCredit = new Label();
-            footerCredit.Text = "v1.02 Native PC Port • REA Protocol Engine • Universal anyPS Architecture";
+            footerCredit.Text = "v1.02 Native PC Port • REA Protocol • J-Stars Victory VS+ PC Edition";
             footerCredit.Font = new Font("Segoe UI", 7.5f);
             footerCredit.ForeColor = Color.FromArgb(120, 130, 155);
             footerCredit.Location = new Point(44, 514);

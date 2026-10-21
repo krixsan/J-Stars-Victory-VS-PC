@@ -1,11 +1,11 @@
 /**
- * anyPS - Universal Translation Wrapper (PS4/PS5 -> PC Host)
+ * J-Stars Victory VS+ PC - Translation Wrapper
  * File: core/os/os_interface.h
- * Purpose: Universal OS abstraction interface for Orbis OS (PS4) & Prospero OS (PS5)
+ * Purpose: OS abstraction interface for Orbis OS (PS4) subsystem
  */
 
-#ifndef ANYPS_OS_INTERFACE_H
-#define ANYPS_OS_INTERFACE_H
+#ifndef JSTARS_OS_INTERFACE_H
+#define JSTARS_OS_INTERFACE_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -15,17 +15,9 @@
 extern "C" {
 #endif
 
-#ifdef ANYPS_PLATFORM_PS4
-#undef ANYPS_PLATFORM_PS4
-#endif
-#ifdef ANYPS_PLATFORM_PS5
-#undef ANYPS_PLATFORM_PS5
-#endif
-
 typedef enum anyps_platform_id {
     ANYPS_PLATFORM_UNKNOWN = 0,
-    ANYPS_PLATFORM_PS4     = 1, /* Orbis OS / FreeBSD 9.0 kernel deriv / AMD Jaguar */
-    ANYPS_PLATFORM_PS5     = 2  /* Prospero OS / FreeBSD 12+ kernel deriv / AMD Zen2 */
+    ANYPS_PLATFORM_PS4     = 1  /* Orbis OS / FreeBSD 9.0 kernel deriv / AMD Jaguar */
 } anyps_platform_id_t;
 
 

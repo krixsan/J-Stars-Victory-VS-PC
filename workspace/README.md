@@ -1,4 +1,4 @@
-# anyPS4 Workspace
+# J-Stars Victory VS+ PC Workspace
 
 Direktori ini digunakan sebagai area kerja lokal untuk menempatkan file game mentah sebelum diproses oleh translation wrapper:
 - File `.pkg` (PlayStation 4 Package)

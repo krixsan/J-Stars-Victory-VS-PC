@@ -74,50 +74,15 @@ anyps_platform_id_t anyps_detect_platform_from_memory(const void *data, size_t s
 
     /* 1. Check SELF Header */
     if (magic == ANYPS_SELF_MAGIC && size >= sizeof(SelfHeader)) {
-        const SelfHeader *self_hdr = (const SelfHeader *)bytes;
-        uint8_t target_id = self_hdr->content_type;
-        if (target_id == SELF_TARGET_PS5) {
-            return ANYPS_PLATFORM_PS5;
-        } else if (target_id == SELF_TARGET_PS4) {
-            return ANYPS_PLATFORM_PS4;
-        }
+        return ANYPS_PLATFORM_PS4;
     }
 
     /* 2. Check Standard ELF64 */
     if (magic == ANYPS_ELF_MAGIC) {
-        const Elf64_Ehdr *ehdr = (const Elf64_Ehdr *)bytes;
-        if (ehdr->e_phoff > 0 && ehdr->e_phoff + (ehdr->e_phnum * sizeof(Elf64_Phdr)) <= size) {
-            const Elf64_Phdr *phdrs = (const Elf64_Phdr *)(bytes + ehdr->e_phoff);
-            for (uint16_t i = 0; i < ehdr->e_phnum; ++i) {
-                /* Inspect SCE Process Param segment */
-                if (phdrs[i].p_type == PT_SCE_PROC_PARAM && phdrs[i].p_offset + phdrs[i].p_filesz <= size) {
-                    const uint32_t *params = (const uint32_t *)(bytes + phdrs[i].p_offset);
-                    /* Process param struct often starts with size, then SDK version */
-                    if (phdrs[i].p_filesz >= 16) {
-                        uint32_t sdk = params[2]; /* typical offset for sdk_version */
-                        uint32_t major = (sdk >> 24) & 0xFF;
-                        if (major >= 1 && major <= 9 && ((bytes[phdrs[i].p_offset + 4] & 0x80) != 0)) {
-                            /* Heuristic match for Prospero / Orbis */
-                        }
-                    }
-                }
-            }
-        }
+        return ANYPS_PLATFORM_PS4;
     }
 
-    /* Scan imports for platform indicators in data strings */
-    const char *str_data = (const char *)bytes;
-    size_t scan_len = size > (1024 * 1024) ? (1024 * 1024) : size;
-    for (size_t i = 0; i + 12 < scan_len; ++i) {
-        if (!memcmp(str_data + i, "libSceAgc", 9) || !memcmp(str_data + i, "Prospero", 8)) {
-            return ANYPS_PLATFORM_PS5;
-        }
-        if (!memcmp(str_data + i, "libSceGnmDriver", 15) || !memcmp(str_data + i, "Orbis", 5)) {
-            return ANYPS_PLATFORM_PS4;
-        }
-    }
-
-    /* Default fallback for PS4 backward-compatible games */
+    /* Default fallback for PS4 games */
     return ANYPS_PLATFORM_PS4;
 }
 
@@ -127,7 +92,7 @@ int anyps_inspect_binary_file(const char *filepath, anyps_binary_info_t *out_inf
 
     FILE *f = fopen(filepath, "rb");
     if (!f) {
-        fprintf(stderr, "[anyPS:Loader] Cannot open file: %s\n", filepath);
+        fprintf(stderr, "[JStars:Loader] Cannot open file: %s\n", filepath);
         return -1;
     }
 
@@ -157,15 +122,10 @@ int anyps_inspect_binary_file(const char *filepath, anyps_binary_info_t *out_inf
     uint32_t magic = *(uint32_t *)header_buf;
     if (magic == ANYPS_SELF_MAGIC) {
         out_info->format = BINARY_FORMAT_SELF;
-        const SelfHeader *sh = (const SelfHeader *)header_buf;
-        if (sh->content_type == SELF_TARGET_PS5) {
-            out_info->platform = ANYPS_PLATFORM_PS5;
-        } else {
-            out_info->platform = ANYPS_PLATFORM_PS4;
-        }
+        out_info->platform = ANYPS_PLATFORM_PS4;
     } else if (magic == ANYPS_ELF_MAGIC) {
         out_info->format = BINARY_FORMAT_RAW_ELF;
-        out_info->platform = anyps_detect_platform_from_memory(header_buf, read_bytes);
+        out_info->platform = ANYPS_PLATFORM_PS4;
         Elf64_Ehdr *ehdr = (Elf64_Ehdr *)header_buf;
         out_info->entry_point = ehdr->e_entry;
         out_info->segment_count = ehdr->e_phnum;
@@ -178,15 +138,9 @@ int anyps_inspect_binary_file(const char *filepath, anyps_binary_info_t *out_inf
     }
 
     /* Fill descriptive labels */
-    if (out_info->platform == ANYPS_PLATFORM_PS5) {
-        strncpy(out_info->platform_name, "PlayStation 5 (Prospero OS)", sizeof(out_info->platform_name)-1);
-        strncpy(out_info->target_cpu_isa, "AMD Zen 2 (x86-64 AVX2)", sizeof(out_info->target_cpu_isa)-1);
-        strncpy(out_info->target_gpu_api, "Oberon / AGC (Vulkan Backend)", sizeof(out_info->target_gpu_api)-1);
-    } else {
-        strncpy(out_info->platform_name, "PlayStation 4 (Orbis OS)", sizeof(out_info->platform_name)-1);
-        strncpy(out_info->target_cpu_isa, "AMD Jaguar (x86-64 / Rewrite)", sizeof(out_info->target_cpu_isa)-1);
-        strncpy(out_info->target_gpu_api, "Liverpool / GNM (Vulkan Backend)", sizeof(out_info->target_gpu_api)-1);
-    }
+    strncpy(out_info->platform_name, "PlayStation 4 (Orbis OS)", sizeof(out_info->platform_name)-1);
+    strncpy(out_info->target_cpu_isa, "AMD Jaguar (x86-64 / Rewrite)", sizeof(out_info->target_cpu_isa)-1);
+    strncpy(out_info->target_gpu_api, "Liverpool / GNM (Vulkan Backend)", sizeof(out_info->target_gpu_api)-1);
 
     format_sdk_version(out_info->sdk_version, out_info->sdk_version_str, sizeof(out_info->sdk_version_str));
 
