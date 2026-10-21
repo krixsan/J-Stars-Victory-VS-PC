@@ -2,11 +2,11 @@
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-blue.svg)](https://microsoft.com/windows)
 [![Renderer](https://img.shields.io/badge/Renderer-Vulkan%201.3-red.svg)](https://vulkan.org)
-[![Framerate](https://img.shields.io/badge/Framerate-60%20FPS-success.svg)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC/releases)
-[![Version](https://img.shields.io/badge/Release-v1.0.0%20Portable-orange.svg)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC/releases/tag/v1.0.0)
-[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv2-green.svg)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC)
+[![Framerate](https://img.shields.io/badge/Framerate-60%20FPS-success.svg)](https://github.com/krixsan/J-Stars-Victory-VS-PC/releases)
+[![Version](https://img.shields.io/badge/Release-v1.0.0%20Portable-orange.svg)](https://github.com/krixsan/J-Stars-Victory-VS-PC/releases/tag/v1.0.0)
+[![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv2-green.svg)](https://github.com/krixsan/J-Stars-Victory-VS-PC)
 
-> **[Download Portable Release (v1.0.0)](https://github.com/Mank-Krisna/J-Stars-Victory-VS-PC/releases/latest)**  
+> **[Download Portable Release (v1.0.0)](https://github.com/krixsan/J-Stars-Victory-VS-PC/releases/latest)**  
 > Grab `J-Stars-Victory-VS-PC-portable-windows.zip`, extract it anywhere, drop your game files into `extracted_game/app0/`, and open `Launcher.exe`. No build tools or compiler required.
 
 A native translation wrapper and Windows x86-64 PC loader for **J-Stars Victory VS+** (PS4, Title IDs `CUSA01887` and `CUSA01593`).
