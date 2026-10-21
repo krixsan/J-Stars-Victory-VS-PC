@@ -34,23 +34,38 @@ This project runs PS4 machine code directly on your host CPU. Because the PS4 ru
 - **GPU:** Vulkan 1.3 compatible graphics card (NVIDIA GTX 900 series+, AMD Radeon RX 400+, or Intel Arc)
 - **Memory:** 8 GB RAM minimum (16 GB recommended)
 
-### 1. Extracting Your Game Dump
-This repository does not contain copyrighted game code or decrypted assets. You need a legitimate copy of the PS4 game:
+### 1. Getting the Game Files (From PKG or PS4 Console)
+This repository does not contain copyrighted game files or proprietary binaries. You need the decrypted files from your own copy of **J-Stars Victory VS+** (`CUSA01887` or `CUSA01593`). You can obtain them using either method below:
 
-1. Extract your decrypted PS4 game dump (`eboot.bin`, PRX modules, and archive files) into the `extracted_game/app0/` directory.
-2. Confirm the folder structure matches this layout:
-   ```text
-   extracted_game/app0/
-   ├── eboot.bin
-   ├── sce_module/
-   │   ├── libc.prx
-   │   └── libSceFios2.prx
-   ├── sce_sys/
-   │   ├── icon0.png
-   │   ├── pic0.png
-   │   └── param.sfo
-   └── data/ (or your .cpk archives)
-   ```
+#### Method A: Direct Dump from a Jailbroken PS4 (Recommended)
+1. Boot your PS4 with GoldHEN enabled.
+2. Launch an app like **ItemzFlow** or the **Game Dumper** payload.
+3. Plug an exFAT-formatted USB drive into the console and dump your installed game.
+4. Once complete, copy the generated `app0` directory straight into `extracted_game/app0/` on your PC.
+
+#### Method B: Extracting a `.pkg` File on PC
+If you have a decrypted package file (FPKG or decrypted retail dump):
+1. Download a PS4 package extraction tool such as **LibOrbisPkg** (GUI `PkgEditor`), **PS4 PKG Tool**, or `orbis-pub-cmd`.
+2. Open the `.pkg` file inside the tool.
+3. Extract the entire `Image0` or `app` filesystem.
+4. Copy the extracted files into the `extracted_game/app0/` directory.
+
+#### Verifying Your Folder Structure
+Confirm that your `extracted_game/app0/` directory matches this layout:
+```text
+extracted_game/app0/
+├── eboot.bin
+├── sce_module/
+│   ├── libc.prx
+│   └── libSceFios2.prx
+├── sce_sys/
+│   ├── icon0.png
+│   ├── pic0.png
+│   └── param.sfo
+└── data/ (or your .cpk archives)
+```
+
+> **Note on eboot.bin:** The binary must be a standard decrypted ELF executable. If you extract an encrypted retail package, the loader won't be able to run it without decrypting it (`unfself`) first.
 
 ### 2. Launching the Game
 1. Open `Launcher.exe`.
