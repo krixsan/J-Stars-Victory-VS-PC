@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v1.5.0] - 2026-11-18
 
 ### Added
+- **Official RecompLauncher Integration:** Added `recomplauncher.json` supporting Level 1 (one-click setup and direct play), Level 2 (launcher settings mapping for display resolution, ultrawide aspect ratios, frame pacing, upscaling/DLSS, anisotropic filtering, async shaders, and 7 menu languages), and Level 3 (automated headless asset/module preparation via `jstars_prepare.exe` and save/log folder actions).
 - **NVIDIA Reflex (`VK_NV_low_latency2`) & AMD Anti-Lag 2 (`VK_AMD_anti_lag`):** Hardware swapchain pacing cuts 20 to 40 ms of input-to-photon latency in default 30 FPS console mode without altering the game's 30 Hz simulation clock.
 - **Configurable 16x Anisotropic Filtering & Shadow Border Clamp Fix:** Added live `Off / 2x / 4x / 8x / 16x` anisotropic filtering (default `16x`) in `Launcher.exe` and the in-game `Picture` tab, automatically excluding depth/shadow targets and 2D point-sampled UI while clamping shadow cascade borders cleanly.
 - **Background Async Shader Compilation & Crash-Proof Pipeline Skip:** Enabled background graphics pipeline worker threads by default and replaced fatal shader compilation aborts with safe per-draw skipping.

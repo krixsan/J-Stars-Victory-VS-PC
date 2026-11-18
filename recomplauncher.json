@@ -1,0 +1,497 @@
+{
+  "$schema": "https://recomplauncher.com/schema/recomplauncher.json",
+  "format": 1,
+  "name": "J-Stars Victory VS+ PC",
+  "repo": "krixsan/J-Stars-Victory-VS-PC",
+  "requires": [
+    "start",
+    "files.folder",
+    "settings.ini",
+    "settings.choices",
+    "settings.slider",
+    "settings.groups"
+  ],
+  "game": {
+    "kind": "folder",
+    "label": "The folder of your decrypted J-Stars Victory VS+ (PS4) dump, CUSA01593 (US), CUSA01887 (EU), or CUSA01661 (JP), containing eboot.bin, sce_module, and sce_sys.",
+    "check": {
+      "file": "eboot.bin"
+    }
+  },
+  "start": {
+    "program": [
+      "jstars_pc.exe",
+      "Launcher.exe"
+    ],
+    "args": [
+      "boot-linked.bin",
+      "--app0",
+      "{game}",
+      "--import-names",
+      "import_names.txt"
+    ],
+    "env": {
+      "BB_DMEM_MB": "4864",
+      "BB_LOW_LATENCY": "auto",
+      "BB_MODS": "1",
+      "JSTARS_30FPS": "1",
+      "JSTARS_60FPS": "0"
+    }
+  },
+  "prepare": {
+    "program": [
+      "jstars_prepare.exe"
+    ],
+    "args": [
+      "{game}",
+      "{install}"
+    ],
+    "label": "Preparing boot image and linking PRX modules",
+    "timeout": 300,
+    "done": [
+      "{install}/boot-linked.bin"
+    ]
+  },
+  "config": [
+    {
+      "id": "main",
+      "format": "ini",
+      "file": [
+        {
+          "path": "{install}/bbport.ini"
+        }
+      ],
+      "new": {
+        "menu_language": "en",
+        "fullscreen": "1",
+        "output_res": "1920x1080",
+        "aspect_ratio": "16:9",
+        "fps_limit": "30",
+        "framegen": "off",
+        "temporal": "fsr1",
+        "sharpen": "1",
+        "sharpness": "0.50",
+        "anisotropy": "16",
+        "async_pipelines": "1",
+        "show_fps": "0"
+      }
+    }
+  ],
+  "folders": {
+    "saves": [
+      {
+        "path": "{install}/user/savedata"
+      }
+    ],
+    "logs": [
+      {
+        "path": "{install}/user/logs"
+      },
+      {
+        "path": "{install}"
+      }
+    ],
+    "mods": [
+      {
+        "path": "{install}/user/mods"
+      }
+    ]
+  },
+  "saves": [
+    "{install}/user/savedata"
+  ],
+  "exit_codes": {
+    "0": "ok",
+    "1": "The game closed with an unexpected error. Check user/logs for details.",
+    "2": "Preparation failed or required game files are missing. Pick your decrypted game folder again."
+  },
+  "looks": {
+    "graphics": "vulkan"
+  },
+  "settings": [
+    {
+      "id": "display_mode",
+      "label": "Window mode",
+      "help": "Fullscreen fills your display. Windowed lets you move and resize the window.",
+      "group": "Display",
+      "choices": [
+        {
+          "label": "Fullscreen",
+          "set": {
+            "fullscreen": "1"
+          }
+        },
+        {
+          "label": "Windowed",
+          "set": {
+            "fullscreen": "0"
+          }
+        }
+      ],
+      "defaults": {
+        "fullscreen": "1"
+      }
+    },
+    {
+      "id": "resolution",
+      "label": "Output resolution",
+      "help": "Display resolution for rendering and UI presentation.",
+      "group": "Display",
+      "choices": [
+        {
+          "label": "720p (1280x720)",
+          "set": {
+            "output_res": "1280x720"
+          }
+        },
+        {
+          "label": "1080p (1920x1080)",
+          "set": {
+            "output_res": "1920x1080"
+          }
+        },
+        {
+          "label": "1440p (2560x1440)",
+          "set": {
+            "output_res": "2560x1440"
+          }
+        },
+        {
+          "label": "4K (3840x2160)",
+          "set": {
+            "output_res": "3840x2160"
+          }
+        },
+        {
+          "label": "Ultrawide 1080p (2560x1080)",
+          "set": {
+            "output_res": "2560x1080",
+            "aspect_ratio": "21:9"
+          }
+        },
+        {
+          "label": "Ultrawide 1440p (3440x1440)",
+          "set": {
+            "output_res": "3440x1440",
+            "aspect_ratio": "21:9"
+          }
+        },
+        {
+          "label": "Super Ultrawide (5120x1440)",
+          "set": {
+            "output_res": "5120x1440",
+            "aspect_ratio": "32:9"
+          }
+        }
+      ],
+      "defaults": {
+        "output_res": "1920x1080"
+      }
+    },
+    {
+      "id": "aspect_ratio",
+      "label": "Aspect ratio",
+      "help": "Viewport aspect ratio. 21:9 and 32:9 extend horizontal battle arena visibility.",
+      "group": "Display",
+      "choices": [
+        {
+          "label": "16:9 (Standard)",
+          "set": {
+            "aspect_ratio": "16:9"
+          }
+        },
+        {
+          "label": "21:9 (Ultrawide)",
+          "set": {
+            "aspect_ratio": "21:9"
+          }
+        },
+        {
+          "label": "32:9 (Super Ultrawide)",
+          "set": {
+            "aspect_ratio": "32:9"
+          }
+        }
+      ],
+      "defaults": {
+        "aspect_ratio": "16:9"
+      }
+    },
+    {
+      "id": "fps_limit",
+      "label": "Frame rate target",
+      "help": "The original console runs at 30 FPS. 60 FPS and 120 FPS offer smoother animation; unlimited removes frame pacing limits.",
+      "group": "Performance",
+      "choices": [
+        {
+          "label": "30 FPS (Console default)",
+          "set": {
+            "fps_limit": "30"
+          }
+        },
+        {
+          "label": "60 FPS",
+          "set": {
+            "fps_limit": "60"
+          }
+        },
+        {
+          "label": "120 FPS",
+          "set": {
+            "fps_limit": "120"
+          }
+        },
+        {
+          "label": "Unlimited",
+          "set": {
+            "fps_limit": "0"
+          }
+        }
+      ],
+      "defaults": {
+        "fps_limit": "30"
+      }
+    },
+    {
+      "id": "upscaling",
+      "label": "Upscaling & Anti-aliasing",
+      "help": "Temporal upscaling and reconstruction. FSR works on all GPUs; DLSS requires an NVIDIA RTX graphics card.",
+      "group": "Graphics",
+      "choices": [
+        {
+          "label": "Native (Off)",
+          "set": {
+            "temporal": "off"
+          }
+        },
+        {
+          "label": "AMD FSR 1",
+          "set": {
+            "temporal": "fsr1"
+          }
+        },
+        {
+          "label": "AMD FSR 3.1",
+          "set": {
+            "temporal": "fsr3"
+          }
+        },
+        {
+          "label": "NVIDIA DLSS",
+          "set": {
+            "temporal": "dlss"
+          }
+        }
+      ],
+      "defaults": {
+        "temporal": "fsr1"
+      }
+    },
+    {
+      "id": "framegen",
+      "label": "Frame generation",
+      "help": "AMD FSR 3 frame generation generates interpolated frames for higher visual fluidness.",
+      "group": "Graphics",
+      "choices": [
+        {
+          "label": "Off",
+          "set": {
+            "framegen": "off"
+          }
+        },
+        {
+          "label": "FSR 3 Frame Generation",
+          "set": {
+            "framegen": "fsr3"
+          }
+        }
+      ],
+      "defaults": {
+        "framegen": "off"
+      }
+    },
+    {
+      "id": "anisotropy",
+      "label": "Texture filtering",
+      "help": "Anisotropic filtering keeps arena ground textures and distant scenery sharp at shallow angles.",
+      "group": "Graphics",
+      "choices": [
+        {
+          "label": "Off (1x)",
+          "set": {
+            "anisotropy": "0"
+          }
+        },
+        {
+          "label": "2x",
+          "set": {
+            "anisotropy": "2"
+          }
+        },
+        {
+          "label": "4x",
+          "set": {
+            "anisotropy": "4"
+          }
+        },
+        {
+          "label": "8x",
+          "set": {
+            "anisotropy": "8"
+          }
+        },
+        {
+          "label": "16x (High Quality)",
+          "set": {
+            "anisotropy": "16"
+          }
+        }
+      ],
+      "defaults": {
+        "anisotropy": "16"
+      }
+    },
+    {
+      "id": "sharpness",
+      "label": "Image sharpness",
+      "help": "Post-process sharpening intensity.",
+      "group": "Graphics",
+      "slider": {
+        "key": "sharpness",
+        "min": 0,
+        "max": 1,
+        "step": 0.05,
+        "format": "%.2f"
+      },
+      "defaults": {
+        "sharpness": "0.50"
+      }
+    },
+    {
+      "id": "async_shaders",
+      "label": "Async shader pipelines",
+      "help": "Compiles Vulkan pipelines in background threads to minimize shader compilation stutter during combat.",
+      "group": "Advanced",
+      "advanced": true,
+      "choices": [
+        {
+          "label": "On (Recommended)",
+          "set": {
+            "async_pipelines": "1"
+          }
+        },
+        {
+          "label": "Off",
+          "set": {
+            "async_pipelines": "0"
+          }
+        }
+      ],
+      "defaults": {
+        "async_pipelines": "1"
+      }
+    },
+    {
+      "id": "menu_language",
+      "label": "In-game menu language",
+      "help": "Language for the port settings menu and runtime overlay.",
+      "group": "Language",
+      "choices": [
+        {
+          "label": "English",
+          "set": {
+            "menu_language": "en"
+          }
+        },
+        {
+          "label": "Bahasa Indonesia",
+          "set": {
+            "menu_language": "id"
+          }
+        },
+        {
+          "label": "Japanese (日本語)",
+          "set": {
+            "menu_language": "ja"
+          }
+        },
+        {
+          "label": "Chinese (中文)",
+          "set": {
+            "menu_language": "zh"
+          }
+        },
+        {
+          "label": "Spanish (Español)",
+          "set": {
+            "menu_language": "es"
+          }
+        },
+        {
+          "label": "Portuguese (Português)",
+          "set": {
+            "menu_language": "pt"
+          }
+        },
+        {
+          "label": "Russian (Русский)",
+          "set": {
+            "menu_language": "ru"
+          }
+        }
+      ],
+      "defaults": {
+        "menu_language": "en"
+      }
+    },
+    {
+      "id": "show_fps",
+      "label": "Show FPS counter",
+      "help": "Display real-time frame rate in the corner of the screen.",
+      "group": "Performance",
+      "choices": [
+        {
+          "label": "Off",
+          "set": {
+            "show_fps": "0"
+          }
+        },
+        {
+          "label": "On",
+          "set": {
+            "show_fps": "1"
+          }
+        }
+      ],
+      "defaults": {
+        "show_fps": "0"
+      }
+    }
+  ],
+  "groups": [
+    {
+      "id": "Advanced",
+      "advanced": true
+    }
+  ],
+  "actions": [
+    {
+      "id": "saves",
+      "label": "Save data",
+      "help": "Open your save files and profile progress.",
+      "open": "saves"
+    },
+    {
+      "id": "logs",
+      "label": "Runtime logs",
+      "help": "Open runtime logs for diagnostics and bug reporting.",
+      "open": "logs"
+    },
+    {
+      "id": "mods",
+      "label": "Mod folder",
+      "help": "Open loose-file mod loader folder.",
+      "open": "mods"
+    }
+  ]
+}

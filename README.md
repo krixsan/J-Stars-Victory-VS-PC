@@ -7,8 +7,12 @@
 [![Version](https://img.shields.io/badge/Release-v1.5.0%20Portable-orange.svg)](https://github.com/krixsan/J-Stars-Victory-VS-PC/releases/tag/v1.5.0)
 [![License](https://img.shields.io/badge/License-MIT%20%2F%20GPLv2-green.svg)](https://github.com/krixsan/J-Stars-Victory-VS-PC)
 
+<p align="center">
+  <a href="https://recomplauncher.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://recomplauncher.com/assets/press/launcher/badge-light.svg"><img alt="Get it on RecompLauncher" src="https://recomplauncher.com/assets/press/launcher/badge-dark.svg" height="48"></picture></a>
+</p>
+
 > **[Download Portable Release (v1.5.0)](https://github.com/krixsan/J-Stars-Victory-VS-PC/releases/latest)** | **[Changelog](CHANGELOG.md)**  
-> Extract `J-Stars-Victory-VS-PC-portable-windows.zip`, copy your decrypted PS4 game dump into `extracted_game/app0/`, and open `Launcher.exe`. You don't need Python, MSYS2, or external SDKs installed.
+> Extract `J-Stars-Victory-VS-PC-portable-windows.zip`, copy your decrypted PS4 game dump into `extracted_game/app0/`, and open `Launcher.exe`. You don't need Python, MSYS2, or external SDKs installed. You can also install and manage updates automatically via [RecompLauncher](https://recomplauncher.com).
 
 Standalone Windows x86-64 PC port and native loader for **J-Stars Victory VS+** (PS4 Title IDs `CUSA01593` US, `CUSA01887` EU, and `CUSA01661` JP).
 
