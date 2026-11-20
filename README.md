@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 <p align="center">
-  <img src="assets/jstars_hero.png" alt="J-Stars Victory VS+ PC Hero Cover Artwork" width="760">
+  <img src="assets/jstars_cover.jpg" alt="J-Stars Victory VS+ PC Cover Artwork" width="460">
 </p>
 
 <p align="center">
